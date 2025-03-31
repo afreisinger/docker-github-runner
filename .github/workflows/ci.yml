@@ -26,13 +26,13 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # For better git metadata handling
+          fetch-depth: 0  # Para mejor manejo de metadatos de git
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3  # Required for multi-platform builds
+        uses: docker/setup-qemu-action@v3  # Requerido para builds multi-arquitectura
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3  # Enables multi-platform support
+        uses: docker/setup-buildx-action@v3  # Habilita soporte multi-plataforma
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
@@ -46,20 +46,23 @@ jobs:
         with:
           images: ${{ secrets.DOCKERHUB_USERNAME }}/gitlab-runner
           tags: |
-            type=ref,event=branch  # Branch-based tag
-            type=ref,event=pr      # Pull request tag
-            type=semver,pattern={{version}}  # Full semantic version
-            type=semver,pattern={{major}}.{{minor}}  # Major.minor version
-            type=sha  # Git commit SHA tag
+            type=raw,value=latest  # Siempre etiqueta como latest
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}  # Etiqueta versión completa (ej. v1.0.0)
+            type=semver,pattern={{major}}.{{minor}}  # Etiqueta mayor.minor (ej. v1.0)
+            type=sha  # SHA del commit
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile  # Specify your Dockerfile location
-          platforms: linux/amd64,linux/arm64  # Multi-platform support
+          file: ./Dockerfile  # Asegura que use el Dockerfile correcto
+          platforms: linux/amd64,linux/arm64  # Soporte para múltiples arquitecturas
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/gitlab-runner:latest
+            ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/gitlab-runner:cache
           cache-to: type=inline
