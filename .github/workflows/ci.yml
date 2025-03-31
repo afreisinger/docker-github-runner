@@ -44,7 +44,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/gitlab-runner
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/github-runner
           tags: |
             type=raw,value=latest  # Siempre etiqueta como latest
             type=ref,event=branch
